@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional
@@ -5,10 +6,11 @@ import analytics
 
 app = FastAPI(title="Falabella Analytics API", version="1.0.0")
 
-# CORS para Angular en localhost:4200
+# CORS_ORIGIN puede ser una lista separada por comas; por defecto permite el dev local
+_origins = os.getenv("CORS_ORIGIN", "http://localhost:4200").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4200"],
+    allow_origins=_origins,
     allow_methods=["GET"],
     allow_headers=["*"],
 )

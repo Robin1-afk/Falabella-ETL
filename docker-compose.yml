@@ -1,0 +1,88 @@
+services:
+
+  # ── SQL Server 2022 ──────────────────────────────────────────────────────────
+  sqlserver:
+    build:
+      context: ./database
+      dockerfile: Dockerfile
+    environment:
+      SA_PASSWORD: ${SA_PASSWORD}
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    healthcheck:
+      # Verifica que SQL Server acepta conexiones antes de levantar los servicios dependientes
+      test: ["/opt/mssql-tools18/bin/sqlcmd", "-S", "localhost",
+             "-U", "sa", "-P", "${SA_PASSWORD}", "-Q", "SELECT 1", "-b", "-C"]
+      interval: 15s
+      timeout: 10s
+      retries: 12
+      start_period: 90s
+
+  # ── API .NET 10 ───────────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5228:5228"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      # Sobrescribe appsettings.json; apunta al servicio sqlserver, no a localhost
+      ConnectionStrings__DefaultConnection: >-
+        Server=sqlserver;Database=DataFlowPlatform;
+        User Id=sa;Password=${SA_PASSWORD};
+        TrustServerCertificate=True;
+      Jwt__Secret: ${JWT_SECRET}
+      BigQuery__ProjectId: ${BIGQUERY_PROJECT_ID}
+      BigQuery__DatasetId: ${BIGQUERY_DATASET_ID}
+      BigQuery__TableId: ${BIGQUERY_TABLE_ID}
+      # Ruta al JSON de credenciales de GCP montado como volumen
+      GOOGLE_APPLICATION_CREDENTIALS: /app/credentials/bigquery-key.json
+    volumes:
+      - ./credentials:/app/credentials:ro
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+
+  # ── Frontend Angular + nginx ──────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+  # ── API Python / FastAPI ──────────────────────────────────────────────────────
+  python:
+    build:
+      context: ./python
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      # Conexión a SQL Server (driver ODBC 18 incluido en la imagen)
+      DB_DRIVER: "ODBC Driver 18 for SQL Server"
+      DB_SERVER: sqlserver
+      DB_DATABASE: DataFlowPlatform
+      DB_USER: sa
+      DB_PASSWORD: ${SA_PASSWORD}
+      # Credenciales de BigQuery
+      BIGQUERY_PROJECT_ID: ${BIGQUERY_PROJECT_ID}
+      BIGQUERY_DATASET_ID: ${BIGQUERY_DATASET_ID}
+      GOOGLE_APPLICATION_CREDENTIALS: /app/credentials/bigquery-key.json
+      # Origen CORS permitido (el frontend en el navegador)
+      CORS_ORIGIN: "http://localhost"
+    volumes:
+      - ./credentials:/app/credentials:ro
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+
+volumes:
+  sqlserver_data:
