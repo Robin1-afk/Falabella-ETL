@@ -1,0 +1,54 @@
+<header class="app-header">
+
+  <!-- Hamburger + brand en móvil -->
+  @if (showMenuBtn) {
+    <button class="icon-btn hamburger" (click)="menuToggle.emit()" title="Menú">
+      <mat-icon>menu</mat-icon>
+    </button>
+    <span class="header-brand-mobile">Falabella</span>
+  }
+
+  <div class="header-spacer"></div>
+
+  <div class="header-actions">
+
+    <!-- Toggle dark / light -->
+    <button
+      class="icon-btn"
+      (click)="toggleTheme()"
+      [matTooltip]="ui.isDark() ? 'Modo claro' : 'Modo oscuro'"
+      matTooltipPosition="below">
+      <mat-icon>{{ ui.isDark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+    </button>
+
+    <!-- Botón de usuario — abre dropdown con nombre, email y logout -->
+    <button class="user-btn" [matMenuTriggerFor]="userMenu">
+      <div class="user-avatar">{{ userInitial }}</div>
+      <span class="user-name">{{ userName }}</span>
+      <mat-icon class="chevron-icon">keyboard_arrow_down</mat-icon>
+    </button>
+
+  </div>
+
+</header>
+
+<!-- Dropdown del usuario -->
+<mat-menu #userMenu="matMenu" panelClass="user-dropdown-panel" xPosition="before">
+
+  <!-- Sección informativa: no cierra el menú al hacer clic -->
+  <div class="dropdown-user-info" (click)="$event.stopPropagation()">
+    <div class="dropdown-avatar-lg">{{ userInitial }}</div>
+    <div>
+      <span class="dropdown-name">{{ userName }}</span>
+      <span class="dropdown-email">{{ userEmail }}</span>
+    </div>
+  </div>
+
+  <mat-divider />
+
+  <button mat-menu-item (click)="logout()">
+    <mat-icon>logout</mat-icon>
+    Cerrar sesión
+  </button>
+
+</mat-menu>

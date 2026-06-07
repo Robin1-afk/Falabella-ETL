@@ -1,0 +1,59 @@
+<div class="page-header">
+  <div>
+    <h2 class="page-title">Pipelines</h2>
+    <p class="page-subtitle">Gestiona y ejecuta tus procesos ETL</p>
+  </div>
+</div>
+
+@if (loading) { <mat-progress-bar mode="indeterminate" /> }
+
+@if (error) {
+  <div class="page-error"><mat-icon>error_outline</mat-icon>{{ error }}</div>
+}
+
+<div class="dark-card">
+  <div class="table-scroll">
+    <table mat-table [dataSource]="dataSource" matSort class="pipeline-table">
+
+      <ng-container matColumnDef="id">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>#</th>
+        <td mat-cell *matCellDef="let p" class="id-cell">{{ p.id }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Nombre</th>
+        <td mat-cell *matCellDef="let p" class="name-cell">{{ p.name }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="description">
+        <th mat-header-cell *matHeaderCellDef>Descripción</th>
+        <td mat-cell *matCellDef="let p" class="desc-cell">{{ p.description }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="createdAt">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Creado</th>
+        <td mat-cell *matCellDef="let p" class="date-cell">{{ p.createdAt | date:'dd/MM/yyyy' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let p" class="actions-cell">
+          <button class="connect-btn" (click)="openConnectDbDialog(p)" [title]="'Conectar BD a ' + p.name">
+            <mat-icon>storage</mat-icon>
+            Conectar BD
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
+      <tr class="mat-row" *matNoDataRow>
+        <td class="mat-cell mat-mdc-no-data-row" [attr.colspan]="displayedColumns.length">
+          No hay pipelines disponibles.
+        </td>
+      </tr>
+
+    </table>
+  </div>
+</div>

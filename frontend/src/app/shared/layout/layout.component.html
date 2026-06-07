@@ -1,0 +1,25 @@
+<mat-sidenav-container class="app-container" [hasBackdrop]="isMobile()">
+
+  <!-- Sidebar — side en desktop, overlay en móvil -->
+  <mat-sidenav
+    #sidenav
+    [mode]="isMobile() ? 'over' : 'side'"
+    [opened]="!isMobile()"
+    [disableClose]="!isMobile()"
+    class="app-sidenav">
+    <!-- En móvil, cierra el drawer al navegar -->
+    <app-sidebar (linkClicked)="isMobile() && sidenav.close()" />
+  </mat-sidenav>
+
+  <!-- Contenido principal -->
+  <mat-sidenav-content class="app-content">
+    <app-header
+      [showMenuBtn]="isMobile()"
+      (menuToggle)="sidenav.toggle()" />
+
+    <main class="main-area">
+      <router-outlet />
+    </main>
+  </mat-sidenav-content>
+
+</mat-sidenav-container>

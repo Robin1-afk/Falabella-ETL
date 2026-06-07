@@ -1,0 +1,87 @@
+<div class="dialog-wrapper">
+
+  <div class="dialog-head">
+    <div class="dialog-icon">
+      <mat-icon>rocket_launch</mat-icon>
+    </div>
+    <div>
+      <h2 class="dialog-title">Ejecutar pipeline</h2>
+      <p class="dialog-sub">{{ data.pipelineName }}</p>
+    </div>
+    <button class="close-btn" (click)="close()" title="Cerrar">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Paso 1: seleccionar archivo -->
+  @if (!result) {
+    <div class="upload-zone" [class.has-file]="selectedFile">
+      <mat-icon class="upload-icon">upload_file</mat-icon>
+
+      @if (selectedFile) {
+        <p class="file-name">{{ selectedFile.name }}</p>
+        <span class="file-size">{{ (selectedFile.size / 1024).toFixed(1) }} KB</span>
+      } @else {
+        <p class="upload-prompt">Arrastra tu CSV aquí o</p>
+      }
+
+      <label class="file-label" for="csvInput">
+        {{ selectedFile ? 'Cambiar archivo' : 'Seleccionar archivo' }}
+      </label>
+      <input id="csvInput" type="file" accept=".csv" (change)="onFileChange($event)" hidden />
+    </div>
+
+    @if (uploading) {
+      <mat-progress-bar mode="indeterminate" class="upload-progress" />
+      <p class="uploading-text">Procesando archivo...</p>
+    }
+
+    @if (error) {
+      <div class="dialog-error">
+        <mat-icon>error_outline</mat-icon>{{ error }}
+      </div>
+    }
+  }
+
+  <!-- Paso 2: resultado -->
+  @if (result) {
+    <div class="result-section">
+      <div class="result-status" [class.ok]="result.status === 'Completed'">
+        <mat-icon>{{ result.status === 'Completed' ? 'check_circle' : 'cancel' }}</mat-icon>
+        <span>{{ result.status === 'Completed' ? 'Ejecución completada' : result.status }}</span>
+      </div>
+
+      <div class="result-grid">
+        <div class="result-tile total">
+          <span class="tile-val">{{ result.totalRows }}</span>
+          <span class="tile-lbl">Total filas</span>
+        </div>
+        <div class="result-tile ok">
+          <span class="tile-val">{{ result.successRows }}</span>
+          <span class="tile-lbl">Exitosas</span>
+        </div>
+        <div class="result-tile err">
+          <span class="tile-val">{{ result.errorRows }}</span>
+          <span class="tile-lbl">Errores</span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Acciones -->
+  <div class="dialog-actions">
+    @if (!result) {
+      <button class="btn-secondary" (click)="close()" [disabled]="uploading">Cancelar</button>
+      <button class="btn-primary" (click)="upload()" [disabled]="!selectedFile || uploading">
+        <mat-icon>play_arrow</mat-icon>
+        Cargar y ejecutar
+      </button>
+    } @else {
+      <button class="btn-primary full" (click)="close()">
+        <mat-icon>check</mat-icon>
+        Cerrar
+      </button>
+    }
+  </div>
+
+</div>

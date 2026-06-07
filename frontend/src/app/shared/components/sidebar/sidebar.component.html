@@ -1,0 +1,43 @@
+<nav class="sidebar" [class.collapsed]="ui.sidebarCollapsed()">
+
+  <!-- Brand Falabella: ícono con "f" minúscula + wordmark -->
+  <div class="sidebar-brand">
+    <div class="brand-icon">
+      <span class="brand-f">f</span>
+    </div>
+    <div class="brand-text">
+      <span class="brand-name">falabella</span>
+    </div>
+  </div>
+
+  <!-- Navegación -->
+  <ul class="nav-list" (click)="linkClicked.emit()">
+    @for (link of links; track link.path) {
+      <li>
+        <a class="nav-item"
+           [routerLink]="link.path"
+           routerLinkActive="active"
+           [routerLinkActiveOptions]="{ exact: false }"
+           [matTooltip]="ui.sidebarCollapsed() ? link.label : ''"
+           matTooltipPosition="right">
+          <mat-icon class="nav-icon">{{ link.icon }}</mat-icon>
+          <span class="nav-label">{{ link.label }}</span>
+          <span class="active-indicator"></span>
+        </a>
+      </li>
+    }
+  </ul>
+
+  <!-- Botón colapsar — fijo al fondo del sidebar -->
+  <button
+    class="collapse-btn"
+    (click)="ui.toggleSidebar()"
+    [matTooltip]="ui.sidebarCollapsed() ? 'Expandir' : ''"
+    matTooltipPosition="right">
+    <mat-icon class="collapse-icon">
+      {{ ui.sidebarCollapsed() ? 'chevron_right' : 'chevron_left' }}
+    </mat-icon>
+    <span class="collapse-label">Colapsar</span>
+  </button>
+
+</nav>

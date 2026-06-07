@@ -1,0 +1,193 @@
+.sidebar {
+  width: var(--sidebar-w);
+  height: 100%;
+  background: var(--bg-surface);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─── Brand ──────────────────────────────────────────────────────────────── */
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 14px 14px;
+  border-bottom: 1px solid var(--border);
+  min-height: 64px;
+  flex-shrink: 0;
+}
+
+/* Ícono Falabella: fondo verde #8DC63F con "f" blanca — sans-serif bold */
+.brand-icon {
+  width: 36px;
+  height: 36px;
+  background: #8DC63F;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* "f" minúscula blanca, sans-serif bold, sin adornos */
+.brand-f {
+  font-size: 1.4rem;
+  font-weight: 700;
+  font-style: normal;
+  color: #ffffff;
+  line-height: 1;
+  margin-top: 2px; /* ajuste óptico */
+  font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  letter-spacing: -0.5px;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  overflow: hidden;
+  white-space: nowrap;
+  opacity: 1;
+  max-width: 160px;
+  transition: opacity 0.15s ease, max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Wordmark: tipografía similar al logo real — bold italic */
+.brand-name {
+  font-size: 1rem;
+  font-weight: 800;
+  font-style: italic;
+  color: var(--text-primary);
+  letter-spacing: -0.4px;
+  text-transform: lowercase;
+}
+
+.brand-sub {
+  font-size: 0.57rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ─── Navegación ─────────────────────────────────────────────────────────── */
+.nav-list {
+  list-style: none;
+  padding: 8px 10px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  position: relative;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: background 0.15s, color 0.15s, padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  .nav-icon       { font-size: 1.2rem; width: 1.2rem; height: 1.2rem; flex-shrink: 0; }
+  .active-indicator { display: none; }
+
+  &:hover {
+    /* rgba del verde lima Falabella al 8% */
+    background: rgba(141, 198, 63, 0.08);
+    color: var(--text-primary);
+  }
+
+  /* Item activo — acento en verde lima */
+  &.active {
+    background: rgba(141, 198, 63, 0.12);
+    color: var(--falabella-green);
+
+    .nav-icon { color: var(--falabella-green); }
+
+    .active-indicator {
+      display: block;
+      position: absolute;
+      right: 0;
+      top: 20%;
+      height: 60%;
+      width: 3px;
+      background: var(--falabella-green);
+      border-radius: 2px 0 0 2px;
+    }
+  }
+}
+
+.nav-label {
+  white-space: nowrap;
+  overflow: hidden;
+  opacity: 1;
+  max-width: 130px;
+  transition: opacity 0.15s ease, max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─── Botón colapsar — siempre al fondo ─────────────────────────────────── */
+.collapse-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: calc(100% - 20px);
+  margin: 0 10px 12px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-family: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s, padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover { background: rgba(255,255,255,0.05); color: var(--text-secondary); }
+}
+
+.collapse-icon {
+  font-size: 1.1rem !important;
+  width: 1.1rem !important;
+  height: 1.1rem !important;
+  flex-shrink: 0;
+}
+
+.collapse-label {
+  opacity: 1;
+  max-width: 80px;
+  overflow: hidden;
+  transition: opacity 0.15s ease, max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ─── Estado colapsado ────────────────────────────────────────────────────── */
+.sidebar.collapsed {
+  .brand-text     { opacity: 0; max-width: 0; }
+  .nav-label      { opacity: 0; max-width: 0; }
+  .collapse-label { opacity: 0; max-width: 0; }
+
+  .nav-item {
+    padding: 10px;
+    justify-content: center;
+    gap: 0;
+  }
+
+  .collapse-btn {
+    padding: 8px;
+    justify-content: center;
+    gap: 0;
+  }
+}

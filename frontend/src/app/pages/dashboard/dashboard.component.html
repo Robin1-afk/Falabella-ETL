@@ -1,0 +1,85 @@
+<div class="page-header">
+  <div>
+    <h2 class="page-title">Dashboard</h2>
+    <p class="page-subtitle">Resumen general de la plataforma ETL</p>
+  </div>
+</div>
+
+@if (loading) {
+  <div class="spinner-center">
+    <mat-spinner diameter="44" />
+  </div>
+}
+
+@if (error) {
+  <div class="page-error">
+    <mat-icon>error_outline</mat-icon>{{ error }}
+  </div>
+}
+
+@if (!loading && !error) {
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap blue">
+        <mat-icon>settings_ethernet</mat-icon>
+      </div>
+      <div class="kpi-body">
+        <span class="kpi-value">{{ totalPipelines | number }}</span>
+        <span class="kpi-label">Total Pipelines</span>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap teal">
+        <mat-icon>cloud_upload</mat-icon>
+      </div>
+      <div class="kpi-body">
+        <span class="kpi-value">{{ totalRecords | number }}</span>
+        <span class="kpi-label">Registros cargados</span>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap indigo">
+        <mat-icon>schedule</mat-icon>
+      </div>
+      <div class="kpi-body">
+        @if (lastExecution) {
+          <span class="kpi-value kpi-date">{{ lastExecution | date:'dd/MM/yyyy' }}</span>
+          <span class="kpi-sub">{{ lastExecution | date:'HH:mm' }} UTC</span>
+        } @else {
+          <span class="kpi-value kpi-empty">—</span>
+        }
+        <span class="kpi-label">Última ejecución</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Gráfico -->
+  <div class="chart-card dark-card">
+    <div class="chart-header">
+      <h3 class="chart-title">Registros por pipeline</h3>
+      <span class="chart-subtitle">Exitosos vs errores acumulados</span>
+    </div>
+
+    @if (barChartData.labels?.length) {
+      <div class="chart-wrap">
+        <canvas baseChart
+          [data]="barChartData"
+          [options]="barChartOptions"
+          [type]="barChartType">
+        </canvas>
+      </div>
+    } @else {
+      <div class="chart-empty">
+        <mat-icon>bar_chart</mat-icon>
+        <p>No hay ejecuciones registradas aún</p>
+      </div>
+    }
+  </div>
+
+}

@@ -1,0 +1,206 @@
+<!-- ── Header de página ──────────────────────────────────────────────────────── -->
+<div class="page-header">
+  <div class="page-title-wrap">
+    <mat-icon class="page-icon">bar_chart</mat-icon>
+    <div>
+      <h1 class="page-title">Analytics</h1>
+      <p class="page-sub">Análisis de ventas y transacciones por país, sede y categoría</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── Barra de filtros ───────────────────────────────────────────────────────── -->
+<div class="filters-bar">
+
+  <div class="filter-group">
+    <label class="filter-label">País</label>
+    <select class="filter-select" [(ngModel)]="selectedPais" (ngModelChange)="onPaisChange()">
+      <option value="">Todos</option>
+      @for (p of paises; track p) { <option [value]="p">{{ p }}</option> }
+    </select>
+  </div>
+
+  <div class="filter-group">
+    <label class="filter-label">Sede</label>
+    <select class="filter-select" [(ngModel)]="selectedSede">
+      <option value="">Todas</option>
+      @for (s of sedes; track s) { <option [value]="s">{{ s }}</option> }
+    </select>
+  </div>
+
+  <div class="filter-group">
+    <label class="filter-label">Categoría</label>
+    <select class="filter-select" [(ngModel)]="selectedCategoria">
+      <option value="">Todas</option>
+      @for (c of categorias; track c) { <option [value]="c">{{ c }}</option> }
+    </select>
+  </div>
+
+  <div class="filter-group">
+    <label class="filter-label">Desde</label>
+    <input class="filter-input" type="date" [(ngModel)]="fechaInicio" />
+  </div>
+
+  <div class="filter-group">
+    <label class="filter-label">Hasta</label>
+    <input class="filter-input" type="date" [(ngModel)]="fechaFin" />
+  </div>
+
+  <!-- Botón deshabilitado mientras carga para evitar clicks múltiples -->
+  <button class="apply-btn" [class.loading]="loading()" [disabled]="loading()" (click)="applyFilters()">
+    @if (loading()) {
+      <span class="spinner"></span>
+    } @else {
+      <mat-icon>search</mat-icon>
+    }
+    {{ loading() ? 'Analizando datos...' : 'Aplicar' }}
+  </button>
+
+</div>
+
+<!-- Mensaje sutil de estado mientras consulta BigQuery -->
+@if (loading()) {
+  <div class="bq-status">
+    <span class="bq-dot"></span>
+    Consultando BigQuery...
+  </div>
+}
+
+<!-- ── KPI Cards — skeleton mientras carga, datos reales cuando termina ───────── -->
+@if (loading()) {
+  <div class="kpi-grid">
+    @for (i of [1,2,3,4]; track i) {
+      <div class="kpi-card">
+        <div class="skeleton sk-icon"></div>
+        <div class="kpi-body">
+          <div class="skeleton sk-label"></div>
+          <div class="skeleton sk-value"></div>
+        </div>
+      </div>
+    }
+  </div>
+} @else if (summary) {
+  <div class="kpi-grid">
+
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap green">
+        <mat-icon>payments</mat-icon>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-label">Monto total</div>
+        <div class="kpi-value">{{ formatMonto(summary.totalMonto) }}</div>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap blue">
+        <mat-icon>receipt_long</mat-icon>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-label">Transacciones</div>
+        <div class="kpi-value">{{ summary.totalTransacciones | number }}</div>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap amber">
+        <mat-icon>show_chart</mat-icon>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-label">Promedio por transacción</div>
+        <div class="kpi-value">{{ formatMonto(summary.promedio) }}</div>
+      </div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-icon-wrap purple">
+        <mat-icon>verified</mat-icon>
+      </div>
+      <div class="kpi-body">
+        <div class="kpi-label">Tasa de éxito</div>
+        <div class="kpi-value">{{ summary.tasaExito }}%</div>
+        <div class="kpi-bar-bg">
+          <div class="kpi-bar-fill" [style.width.%]="summary.tasaExito"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+}
+
+<!-- ── Gráficas — skeleton mientras carga, gráficas reales cuando termina ───── -->
+@if (loading()) {
+  <div class="charts-grid">
+
+    <!-- Skeleton barra (ancha) -->
+    <div class="chart-card chart-wide">
+      <div class="chart-header"><div class="skeleton sk-chart-title"></div></div>
+      <div class="chart-body"><div class="skeleton sk-chart-area"></div></div>
+    </div>
+
+    <!-- Skeleton dona (columna derecha, ocupa filas 1-2) -->
+    <div class="chart-card">
+      <div class="chart-header"><div class="skeleton sk-chart-title"></div></div>
+      <div class="chart-body chart-body-donut"><div class="skeleton sk-chart-area sk-chart-donut"></div></div>
+    </div>
+
+    <!-- Skeleton línea (ancho completo) -->
+    <div class="chart-card chart-full">
+      <div class="chart-header"><div class="skeleton sk-chart-title"></div></div>
+      <div class="chart-body chart-body-line"><div class="skeleton sk-chart-area"></div></div>
+    </div>
+
+  </div>
+} @else {
+  <div class="charts-grid">
+
+    <!-- Barras: ventas por sede -->
+    <div class="chart-card chart-wide">
+      <div class="chart-header">
+        <div class="chart-title">
+          <mat-icon>store</mat-icon> Ventas por sede
+        </div>
+      </div>
+      <div class="chart-body">
+        <canvas baseChart
+          [data]="barData"
+          [options]="barOptions"
+          type="bar">
+        </canvas>
+      </div>
+    </div>
+
+    <!-- Dona: distribución por categoría -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">
+          <mat-icon>donut_large</mat-icon> Distribución por categoría
+        </div>
+      </div>
+      <div class="chart-body chart-body-donut">
+        <canvas baseChart
+          [data]="donutData"
+          [options]="donutOptions"
+          type="doughnut">
+        </canvas>
+      </div>
+    </div>
+
+    <!-- Línea: evolución mensual -->
+    <div class="chart-card chart-full">
+      <div class="chart-header">
+        <div class="chart-title">
+          <mat-icon>timeline</mat-icon> Evolución mensual
+        </div>
+      </div>
+      <div class="chart-body chart-body-line">
+        <canvas baseChart
+          [data]="lineData"
+          [options]="lineOptions"
+          type="line">
+        </canvas>
+      </div>
+    </div>
+
+  </div>
+}

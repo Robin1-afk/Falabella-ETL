@@ -1,0 +1,586 @@
+<!-- ── Header ─────────────────────────────────────────────────────────────── -->
+<div class="dlg-header">
+  <div class="dlg-title-row">
+    <div class="dlg-icon"><mat-icon>cable</mat-icon></div>
+    <div>
+      <div class="dlg-title">Conectar Base de Datos</div>
+      <div class="dlg-sub">{{ data.pipelineName }}</div>
+    </div>
+  </div>
+  <button class="close-btn" (click)="close()"><mat-icon>close</mat-icon></button>
+</div>
+
+<!-- ── Indicador de 5 pasos ───────────────────────────────────────────────── -->
+<div class="steps-bar">
+  @for (s of [1,2,3,4,5]; track s) {
+    <div class="step-item"
+         [class.active]="step() === s"
+         [class.done]="step() > s">
+      <div class="step-circle">{{ step() > s ? '✓' : s }}</div>
+      <span class="step-label">
+        @switch (s) {
+          @case (1) { Origen }
+          @case (2) { Destino }
+          @case (3) { Filtros }
+          @case (4) { Mapeo }
+          @case (5) { Ejecutar }
+        }
+      </span>
+    </div>
+    @if (s < 5) {
+      <div class="step-line" [class.done]="step() > s"></div>
+    }
+  }
+</div>
+
+@if (testing || previewing || destTesting || destLoadingCols || running) {
+  <mat-progress-bar mode="indeterminate" class="dlg-progress" />
+}
+
+<!-- ── Cuerpo ─────────────────────────────────────────────────────────────── -->
+<div class="dlg-body">
+
+  <!-- ══ PASO 1 — Conexión origen ═════════════════════════════════════════ -->
+  @if (step() === 1) {
+
+    <div class="form-grid">
+      <div class="form-row full">
+        <label class="field-label">Tipo de base de datos</label>
+        <div class="type-toggle">
+          <button class="type-btn" [class.selected]="conn.type === 'mysql'"
+            (click)="conn.type = 'mysql'; onTypeChange()">
+            <mat-icon>storage</mat-icon> MySQL
+          </button>
+          <button class="type-btn" [class.selected]="conn.type === 'sqlserver'"
+            (click)="conn.type = 'sqlserver'; onTypeChange()">
+            <mat-icon>dns</mat-icon> SQL Server
+          </button>
+        </div>
+      </div>
+
+      <div class="form-row grow">
+        <label class="field-label">Host</label>
+        <input class="field-input" [(ngModel)]="conn.host" placeholder="localhost" />
+      </div>
+      <div class="form-row w100">
+        <label class="field-label">Puerto</label>
+        <input class="field-input" type="number" [(ngModel)]="conn.port" />
+      </div>
+
+      <div class="form-row full">
+        <label class="field-label">Base de datos</label>
+        <input class="field-input" [(ngModel)]="conn.database" placeholder="nombre_bd" />
+      </div>
+
+      <!-- WinAuth solo disponible para SQL Server -->
+      @if (conn.type === 'sqlserver') {
+        <div class="form-row full">
+          <label class="winauth-label">
+            <input type="checkbox" [(ngModel)]="conn.winAuth" />
+            <span class="winauth-text">Usar Windows Authentication</span>
+            <span class="badge-optional">no requiere usuario ni contraseña</span>
+          </label>
+        </div>
+      }
+
+      <!-- Usuario/contraseña — ocultos cuando WinAuth está activo en SQL Server -->
+      @if (!(conn.type === 'sqlserver' && conn.winAuth)) {
+        <div class="form-row half">
+          <label class="field-label">Usuario</label>
+          <input class="field-input" [(ngModel)]="conn.user" placeholder="root" />
+        </div>
+        <div class="form-row half">
+          <label class="field-label">Contraseña</label>
+          <input class="field-input" type="password" [(ngModel)]="conn.password" placeholder="••••••" />
+        </div>
+      }
+    </div>
+
+    @if (testResult) {
+      <div class="test-result" [class.ok]="testResult.success" [class.fail]="!testResult.success">
+        <mat-icon>{{ testResult.success ? 'check_circle' : 'error' }}</mat-icon>
+        <span>{{ testResult.message }}</span>
+        @if (testResult.success) {
+          <span class="tag">{{ testResult.tables.length }} tablas</span>
+        }
+      </div>
+    }
+
+    @if (testResult?.success) {
+      <div class="subsection">
+        <div class="section-label">
+          <mat-icon>table_chart</mat-icon> Tabla origen
+        </div>
+        <div class="row-inline">
+          <select class="field-input field-select flex1"
+            [(ngModel)]="selectedSrcTable"
+            (ngModelChange)="preview = null; previewError = ''">
+            <option value="">— selecciona una tabla —</option>
+            @for (t of testResult!.tables; track t) {
+              <option [value]="t">{{ t }}</option>
+            }
+          </select>
+          <button class="action-btn secondary"
+            [disabled]="!selectedSrcTable || previewing"
+            (click)="loadPreview()">
+            <mat-icon>preview</mat-icon>
+            {{ previewing ? 'Cargando…' : 'Vista previa' }}
+          </button>
+        </div>
+
+        @if (previewError) {
+          <div class="error-msg"><mat-icon>error_outline</mat-icon> {{ previewError }}</div>
+        }
+
+        @if (preview) {
+          <div class="preview-meta">
+            <mat-icon>info_outline</mat-icon>
+            {{ preview.columns.length }} columnas · {{ preview.rows.length }} filas (muestra)
+          </div>
+          <div class="preview-scroll">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  @for (c of preview.columns; track c.name) {
+                    <th>{{ c.name }}<span class="col-type-tag">{{ c.type }}</span></th>
+                  }
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of preview.rows; track $index) {
+                  <tr>
+                    @for (c of preview.columns; track c.name) {
+                      <td>{{ row[c.name] ?? '—' }}</td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+    }
+  }
+
+  <!-- ══ PASO 3 — Filtros (opcional) ══════════════════════════════════════ -->
+  @if (step() === 3) {
+
+    <div class="filters-header">
+      <div class="section-label" style="margin-bottom:0">
+        <mat-icon>filter_list</mat-icon>
+        Condiciones de filtro
+        <span class="badge-optional">opcional</span>
+      </div>
+      <button class="action-btn secondary" (click)="addFilter()">
+        <mat-icon>add</mat-icon> Agregar condición
+      </button>
+    </div>
+
+    @if (filters.length === 0) {
+      <div class="filters-empty">
+        <mat-icon>filter_list_off</mat-icon>
+        Sin filtros — se importarán todos los registros de <strong>{{ selectedSrcTable }}</strong>
+      </div>
+    }
+
+    @for (f of filters; track $index) {
+      <div class="filter-row">
+
+        <!-- Conector AND/OR (oculto en el primer filtro) -->
+        @if ($index > 0) {
+          <div class="filter-connector">
+            <button class="connector-btn" [class.active]="f.connector === 'AND'"
+              (click)="f.connector = 'AND'">AND</button>
+            <button class="connector-btn" [class.active]="f.connector === 'OR'"
+              (click)="f.connector = 'OR'">OR</button>
+          </div>
+        } @else {
+          <div class="filter-connector-ph"></div>
+        }
+
+        <!-- Columna origen -->
+        <select class="field-input field-select filter-col" [(ngModel)]="f.column">
+          @for (c of (preview?.columns ?? []); track c.name) {
+            <option [value]="c.name">{{ c.name }}</option>
+          }
+        </select>
+
+        <!-- Operador -->
+        <select class="field-input field-select filter-op" [(ngModel)]="f.operator">
+          @for (op of operators; track op) {
+            <option [value]="op">{{ op }}</option>
+          }
+        </select>
+
+        <!-- Área de valor: toggle Literal/Columna + campo correspondiente -->
+        @if (f.operator !== 'IS NULL' && f.operator !== 'IS NOT NULL') {
+          <div class="filter-val-area">
+            <!-- Toggle Literal / Columna destino -->
+            <div class="val-type-toggle" matTooltip="Cambiar tipo de valor">
+              <button class="vtype-btn" [class.active]="f.valueType === 'literal'"
+                (click)="f.valueType = 'literal'">Lit</button>
+              <button class="vtype-btn" [class.active]="f.valueType === 'column'"
+                (click)="f.valueType = 'column'">Col</button>
+            </div>
+
+            <!-- Valor literal -->
+            @if (f.valueType === 'literal') {
+              <input class="field-input filter-val" [(ngModel)]="f.value"
+                placeholder="valor…" />
+            }
+
+            <!-- Columna destino -->
+            @if (f.valueType === 'column') {
+              <select class="field-input field-select filter-val" [(ngModel)]="f.destColumn">
+                @if (!destColumns.length) {
+                  <option value="">— sin columnas —</option>
+                }
+                @for (dc of destColumns; track dc) {
+                  <option [value]="dc">{{ dc }}</option>
+                }
+              </select>
+            }
+          </div>
+        } @else {
+          <div class="filter-val-ph"></div>
+        }
+
+        <!-- Eliminar fila -->
+        <button class="filter-delete" (click)="removeFilter($index)"
+          matTooltip="Eliminar condición">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    }
+
+    <!-- Vista previa del WHERE en tiempo real -->
+    @if (wherePreview) {
+      <div class="where-preview">
+        <mat-icon>code</mat-icon>
+        <code>{{ wherePreview }}</code>
+      </div>
+    }
+  }
+
+  <!-- ══ PASO 2 — Conexión destino ════════════════════════════════════════ -->
+  @if (step() === 2) {
+
+    <div class="quick-option-bar">
+      <div class="quick-option-info">
+        <mat-icon class="quick-icon">bolt</mat-icon>
+        <div>
+          <div class="quick-title">Base de datos interna</div>
+          <div class="quick-detail">localhost\SQLEXPRESS · DataFlowPlatform</div>
+        </div>
+      </div>
+      <button class="action-btn secondary"
+        [disabled]="destTesting"
+        (click)="useInternalDb()">
+        {{ destTesting && destIsInternal ? 'Conectando…' : 'Usar esta BD' }}
+      </button>
+    </div>
+
+    <div class="divider-or"><span>o conecta a otra base de datos</span></div>
+
+    <div class="form-grid">
+      <div class="form-row full">
+        <label class="field-label">Tipo de base de datos</label>
+        <div class="type-toggle">
+          <button class="type-btn" [class.selected]="destConn.type === 'mysql'"
+            (click)="destConn.type = 'mysql'; onDestTypeChange()">
+            <mat-icon>storage</mat-icon> MySQL
+          </button>
+          <button class="type-btn" [class.selected]="destConn.type === 'sqlserver'"
+            (click)="destConn.type = 'sqlserver'; onDestTypeChange()">
+            <mat-icon>dns</mat-icon> SQL Server
+          </button>
+        </div>
+      </div>
+      <div class="form-row grow">
+        <label class="field-label">Host</label>
+        <input class="field-input" [(ngModel)]="destConn.host" placeholder="localhost" />
+      </div>
+      <div class="form-row w100">
+        <label class="field-label">Puerto</label>
+        <input class="field-input" type="number" [(ngModel)]="destConn.port" />
+      </div>
+      <div class="form-row full">
+        <label class="field-label">Base de datos</label>
+        <input class="field-input" [(ngModel)]="destConn.database" placeholder="nombre_bd" />
+      </div>
+
+      @if (destConn.type === 'sqlserver') {
+        <div class="form-row full">
+          <label class="winauth-label">
+            <input type="checkbox" [(ngModel)]="destConn.winAuth" />
+            <span class="winauth-text">Usar Windows Authentication</span>
+            <span class="badge-optional">no requiere usuario ni contraseña</span>
+          </label>
+        </div>
+      }
+
+      @if (!(destConn.type === 'sqlserver' && destConn.winAuth)) {
+        <div class="form-row half">
+          <label class="field-label">Usuario</label>
+          <input class="field-input" [(ngModel)]="destConn.user" placeholder="usuario" />
+        </div>
+        <div class="form-row half">
+          <label class="field-label">Contraseña</label>
+          <input class="field-input" type="password" [(ngModel)]="destConn.password" placeholder="••••••" />
+        </div>
+      }
+    </div>
+
+    @if (destTestResult) {
+      <div class="test-result" [class.ok]="destTestResult.success" [class.fail]="!destTestResult.success">
+        <mat-icon>{{ destTestResult.success ? 'check_circle' : 'error' }}</mat-icon>
+        <span>{{ destTestResult.message }}</span>
+        @if (destTestResult.success) {
+          <span class="tag">{{ destTestResult.tables.length }} tablas</span>
+          @if (destIsInternal) { <span class="badge-internal">BD interna</span> }
+        }
+      </div>
+    }
+
+    @if (destTestResult?.success) {
+      <div class="subsection">
+        <div class="section-label"><mat-icon>table_chart</mat-icon> Tabla destino</div>
+        <select class="field-input field-select"
+          [(ngModel)]="selectedDestTable"
+          (ngModelChange)="onDestTableChange()">
+          <option value="">— selecciona una tabla —</option>
+          @for (t of destTestResult!.tables; track t) {
+            <option [value]="t">{{ t }}</option>
+          }
+        </select>
+        @if (destLoadingCols) {
+          <div class="loading-msg"><mat-icon>hourglass_empty</mat-icon> Cargando columnas…</div>
+        }
+        @if (destColsError) {
+          <div class="error-msg"><mat-icon>error_outline</mat-icon> {{ destColsError }}</div>
+        }
+        @if (destColumns.length > 0) {
+          <div class="columns-label">
+            <mat-icon>view_column</mat-icon> {{ destColumns.length }} columnas disponibles
+          </div>
+          <div class="column-chips">
+            @for (col of destColumns; track col) {
+              <span class="col-chip">{{ col }}</span>
+            }
+          </div>
+        }
+      </div>
+    }
+  }
+
+  <!-- ══ PASO 4 — Mapeo ═══════════════════════════════════════════════════ -->
+  @if (step() === 4) {
+    <div class="section-label">
+      <mat-icon>compare_arrows</mat-icon>
+      Mapeo de columnas
+      <span class="badge-count">{{ includedMappings.length }} / {{ mappings.length }} mapeadas</span>
+    </div>
+
+    <div class="map-scroll">
+      <table class="map-table">
+        <thead>
+          <tr>
+            <th class="col-inc">
+              <label class="check-toggle" matTooltip="Seleccionar todos">
+                <input type="checkbox" [checked]="allIncluded" (change)="toggleAll($event)" />
+                <span class="checkmark"></span>
+              </label>
+            </th>
+            <th class="col-panel src-panel">
+              <div class="panel-head">
+                <mat-icon>storage</mat-icon>
+                <span>{{ selectedSrcTable }}</span>
+                <span class="panel-type">origen</span>
+              </div>
+            </th>
+            <th class="col-arr"></th>
+            <th class="col-panel dst-panel">
+              <div class="panel-head">
+                <mat-icon>dns</mat-icon>
+                <span>{{ selectedDestTable }}</span>
+                <span class="panel-type">destino</span>
+              </div>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (m of mappings; track m.source) {
+            <tr [class.excluded]="!m.include">
+              <td class="col-inc">
+                <label class="check-toggle">
+                  <input type="checkbox" [(ngModel)]="m.include" />
+                  <span class="checkmark"></span>
+                </label>
+              </td>
+              <td class="col-panel src-panel">
+                <span class="source-col">{{ m.source }}</span>
+              </td>
+              <td class="col-arr">
+                <mat-icon class="arrow-icon">{{ m.include ? 'arrow_forward' : 'remove' }}</mat-icon>
+              </td>
+              <td class="col-panel dst-panel">
+                <select class="field-input field-select small"
+                  [(ngModel)]="m.destination" [disabled]="!m.include">
+                  <option value="">— sin mapeo —</option>
+                  @for (dc of destColumns; track dc) {
+                    <option [value]="dc">{{ dc }}</option>
+                  }
+                </select>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <!-- ══ PASO 5 — Ejecutar ════════════════════════════════════════════════ -->
+  @if (step() === 5) {
+
+    @if (!result) {
+      <div class="summary-connections">
+        <div class="conn-card">
+          <div class="conn-card-icon src"><mat-icon>storage</mat-icon></div>
+          <div class="conn-card-body">
+            <div class="conn-card-type">{{ conn.type.toUpperCase() }}</div>
+            <div class="conn-card-db">{{ conn.database }}</div>
+            <div class="conn-card-table">
+              <mat-icon>table_chart</mat-icon> {{ selectedSrcTable }}
+            </div>
+          </div>
+        </div>
+
+        <div class="summary-arrow-wrap">
+          <mat-icon class="summary-arrow">arrow_forward</mat-icon>
+          <span class="summary-rows">{{ includedMappings.length }} campos</span>
+        </div>
+
+        <div class="conn-card">
+          <div class="conn-card-icon dst"><mat-icon>dns</mat-icon></div>
+          <div class="conn-card-body">
+            <div class="conn-card-type">{{ destSummaryType }}</div>
+            <div class="conn-card-db">{{ destSummaryDb }}</div>
+            <div class="conn-card-table">
+              <mat-icon>table_chart</mat-icon> {{ selectedDestTable }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resumen de filtros activos -->
+      @if (wherePreview) {
+        <div class="section-label" style="margin-top:10px">
+          <mat-icon>filter_list</mat-icon> Filtros aplicados
+        </div>
+        <div class="where-preview where-preview-sm">
+          <mat-icon>code</mat-icon>
+          <code>{{ wherePreview }}</code>
+        </div>
+      }
+
+      <div class="section-label" style="margin-top:12px">
+        <mat-icon>compare_arrows</mat-icon> Mapeo configurado
+      </div>
+      <div class="mapping-chips">
+        @for (m of includedMappings; track m.source) {
+          <div class="map-chip">
+            <span class="mc-src">{{ m.source }}</span>
+            <mat-icon>arrow_forward</mat-icon>
+            <span class="mc-dst">{{ m.destination }}</span>
+          </div>
+        }
+      </div>
+
+      @if (error) {
+        <div class="error-msg"><mat-icon>error_outline</mat-icon> {{ error }}</div>
+      }
+    }
+
+    @if (result) {
+      <div class="run-success">
+        <mat-icon class="success-icon">check_circle</mat-icon>
+        <div class="success-title">Pipeline ejecutado con éxito</div>
+        <div class="success-stats">
+          <div class="stat"><span class="stat-n">{{ result.totalRows }}</span><span class="stat-l">Total</span></div>
+          <div class="stat ok"><span class="stat-n">{{ result.successRows }}</span><span class="stat-l">Exitosos</span></div>
+          <div class="stat" [class.err]="result.errorRows > 0">
+            <span class="stat-n">{{ result.errorRows }}</span><span class="stat-l">Errores</span>
+          </div>
+        </div>
+        <div class="exec-id">Ejecución #{{ result.executionId }}</div>
+      </div>
+    }
+  }
+
+</div>
+
+<!-- ── Footer ─────────────────────────────────────────────────────────────── -->
+<div class="dlg-footer">
+  @if (result) {
+    <button class="action-btn primary" (click)="close()">
+      <mat-icon>done</mat-icon> Cerrar
+    </button>
+  } @else {
+    <button class="action-btn ghost" (click)="step() === 1 ? close() : back()">
+      <mat-icon>{{ step() === 1 ? 'close' : 'arrow_back' }}</mat-icon>
+      {{ step() === 1 ? 'Cancelar' : 'Volver' }}
+    </button>
+
+    @switch (step()) {
+      @case (1) {
+        <button class="action-btn primary"
+          [disabled]="testing || !conn.host || !conn.database || (!conn.winAuth && !conn.user)"
+          (click)="testConnection()">
+          <mat-icon>wifi_tethering</mat-icon>
+          {{ testing ? 'Conectando…' : 'Probar conexión' }}
+        </button>
+        @if (canGoStep2) {
+          <button class="action-btn primary" (click)="goStep2()">
+            Siguiente <mat-icon>arrow_forward</mat-icon>
+          </button>
+        }
+      }
+      @case (2) {
+        <!-- Destino: probar conexión externa + Siguiente si tabla+columnas cargadas -->
+        <button class="action-btn primary"
+          [disabled]="destTesting || !destConn.host || !destConn.database || (!destConn.winAuth && !destConn.user)"
+          (click)="testDestConnection()">
+          <mat-icon>wifi_tethering</mat-icon>
+          {{ destTesting && !destIsInternal ? 'Conectando…' : 'Probar conexión' }}
+        </button>
+        @if (canGoStep3) {
+          <button class="action-btn primary" (click)="goStep3()">
+            Siguiente <mat-icon>arrow_forward</mat-icon>
+          </button>
+        }
+      }
+      @case (3) {
+        <!-- Filtros opcionales — siempre puede avanzar al mapeo -->
+        <button class="action-btn primary" (click)="goStep4()">
+          @if (filters.length === 0) { Sin filtros — }
+          Siguiente <mat-icon>arrow_forward</mat-icon>
+        </button>
+      }
+      @case (4) {
+        <button class="action-btn primary"
+          [disabled]="!canGoStep5"
+          (click)="goStep5()">
+          Siguiente <mat-icon>arrow_forward</mat-icon>
+        </button>
+      }
+      @case (5) {
+        <button class="action-btn primary"
+          [disabled]="running"
+          (click)="run()">
+          <mat-icon>play_arrow</mat-icon>
+          {{ running ? 'Ejecutando…' : 'Ejecutar pipeline' }}
+        </button>
+      }
+    }
+  }
+</div>

@@ -1,0 +1,29 @@
+.app-container {
+  height: 100vh;
+  background: var(--bg-base) !important;
+}
+
+.app-sidenav {
+  /* Ancho controlado por --sidebar-w; transiciona junto con el sidebar interno */
+  width: var(--sidebar-w);
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-right: 1px solid var(--border) !important;
+  background: var(--bg-surface) !important;
+  overflow: hidden !important;
+}
+
+.app-content {
+  background: var(--bg-base);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-area {
+  margin-top: var(--header-h);
+  padding: 24px;
+  flex: 1;
+  overflow-y: auto;
+
+  @media (max-width: 767px) { padding: 16px; }
+}

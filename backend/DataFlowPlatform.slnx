@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="DataFlowPlatform.API/DataFlowPlatform.API.csproj" />
+  <Project Path="DataFlowPlatform.Domain/DataFlowPlatform.Domain.csproj" />
+  <Project Path="DataFlowPlatform.Infrastructure/DataFlowPlatform.Infrastructure.csproj" />
+</Solution>

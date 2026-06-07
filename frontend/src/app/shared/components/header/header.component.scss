@@ -1,0 +1,106 @@
+.app-header {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: var(--sidebar-w);
+  height: var(--header-h);
+  z-index: 200;
+  /* Dark: fondo oscuro #1e293b. Light: blanco con borde inferior */
+  background:    var(--header-bg);
+  border-bottom: var(--header-border);
+  box-shadow:    var(--header-shadow);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 10px;
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  @media (max-width: 767px) { left: 0; }
+}
+
+.header-spacer { flex: 1; }
+
+/* En móvil muestra "falabella" en el header */
+.header-brand-mobile {
+  font-size: 1rem;
+  font-weight: 800;
+  font-style: italic;
+  /* Adapta al modo: blanco en dark header, oscuro en light */
+  color: var(--header-user-name);
+  letter-spacing: -0.3px;
+}
+
+/* ─── Acciones ───────────────────────────────────────────────────────────── */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Botón ícono (tema, hamburger) — colores dinámicos según modo */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  border: none;
+  background: var(--header-icon-bg);
+  color: var(--header-icon-color);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  mat-icon { font-size: 1.15rem; width: 1.15rem; height: 1.15rem; }
+
+  &:hover { background: var(--header-icon-hover); }
+}
+
+.hamburger { margin-right: 4px; }
+
+/* ─── Botón de usuario (trigger dropdown) ────────────────────────────────── */
+.user-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px 4px 4px;
+  border-radius: 24px;
+  border: none;
+  background: var(--header-user-bg);
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-left: 4px;
+
+  &:hover { background: var(--header-user-hover); }
+}
+
+/* Avatar: gris oscuro con inicial blanca — mismo en ambos modos */
+.user-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #334155;
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.user-name {
+  font-size: 0.825rem;
+  font-weight: 500;
+  color: var(--header-user-name);
+  white-space: nowrap;
+
+  @media (max-width: 600px) { display: none; }
+}
+
+.chevron-icon {
+  font-size: 1rem !important;
+  width: 1rem !important;
+  height: 1rem !important;
+  color: var(--header-chevron) !important;
+}

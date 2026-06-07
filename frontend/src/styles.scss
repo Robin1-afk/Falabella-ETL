@@ -1,0 +1,414 @@
+/* ─── Variables — dark theme (default) ─────────────────────────────────── */
+:root {
+  --bg-base:          #0f172a;
+  --bg-surface:       #1e293b;
+  --bg-surface-2:     #243347;
+  --border:           #334155;
+  --text-primary:     #f1f5f9;
+  --text-secondary:   #94a3b8;
+  --text-muted:       #64748b;
+  /* Colores corporativos Falabella (verde lima real) */
+  --falabella-green:  #8DC63F;
+  --falabella-dark:   #5A8A00;
+  --falabella-light:  #A8D65A;
+  /* Alias de acento para componentes Material */
+  --accent:           var(--falabella-green);
+  --accent-hover:     var(--falabella-dark);
+  --yellow:           #FFD100;
+  /* Informacionales */
+  --blue:             #3b82f6;
+  --indigo:           #6366f1;
+  --success:          #10b981;
+  --error:            #ef4444;
+  --warning:          #f59e0b;
+  /* Gradiente botones — lima a verde oscuro */
+  --gradient-btn:     linear-gradient(135deg, #8DC63F 0%, #5A8A00 100%);
+  /* Header dark: fondo oscuro igual al sidebar, borde sutil */
+  --header-bg:          #1e293b;
+  --header-border:      1px solid var(--border);
+  --header-shadow:      none;
+  /* Íconos del header en dark mode — sobre fondo oscuro */
+  --header-icon-color:  rgba(255,255,255,0.82);
+  --header-icon-bg:     rgba(255,255,255,0.07);
+  --header-icon-hover:  rgba(255,255,255,0.14);
+  --header-user-bg:     rgba(255,255,255,0.10);
+  --header-user-hover:  rgba(255,255,255,0.18);
+  --header-user-name:   rgba(255,255,255,0.88);
+  --header-chevron:     rgba(255,255,255,0.55);
+  --shadow-card:        0 4px 24px rgba(0, 0, 0, 0.4);
+  --radius:           10px;
+  --sidebar-w:        240px;
+  --header-h:         60px;
+}
+
+/* ─── Tema claro — header BLANCO con borde, sidebar blanco ──────────────── */
+body.light-theme {
+  --bg-base:        #f8fafc;
+  --bg-surface:     #ffffff;
+  --bg-surface-2:   #f1f5f9;
+  --border:         #e2e8f0;
+  --text-primary:   #0f172a;
+  --text-secondary: #334155;
+  --text-muted:     #94a3b8;
+  --shadow-card:    0 1px 3px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.05);
+  /* Header blanco con borde inferior sutil — verde solo como acento */
+  --header-bg:          #ffffff;
+  --header-border:      1px solid #e2e8f0;
+  --header-shadow:      none;
+  /* Íconos del header en light mode — sobre fondo blanco */
+  --header-icon-color:  #475569;
+  --header-icon-bg:     transparent;
+  --header-icon-hover:  rgba(0,0,0,0.06);
+  --header-user-bg:     rgba(0,0,0,0.04);
+  --header-user-hover:  rgba(0,0,0,0.08);
+  --header-user-name:   #334155;
+  --header-chevron:     #94a3b8;
+
+  /* Material — tabla */
+  .mat-mdc-row:hover  { background: rgba(0,0,0,0.03) !important; }
+  .mat-mdc-header-row { background: #f8fafc !important; }
+  .mat-mdc-row        { border-bottom: 1px solid #f1f5f9 !important; }
+
+  /* Sidebar blanco puro con borde derecho sutil */
+  .mat-drawer-container { background: var(--bg-base) !important; }
+  .mat-drawer {
+    background: #ffffff !important;
+    border-right: 1px solid #e2e8f0 !important;
+    box-shadow: none !important;
+  }
+
+  /* Hover del botón colapsar sobre fondo blanco */
+  .collapse-btn:hover {
+    background: rgba(0,0,0,0.05) !important;
+    color: var(--text-secondary) !important;
+  }
+
+  /* Material — paginator / select */
+  .mat-mdc-paginator      { background: var(--bg-surface) !important; border-top: 1px solid var(--border) !important; }
+  .mat-mdc-option         { background: var(--bg-surface) !important; color: var(--text-primary) !important; }
+  .mat-mdc-option:hover   { background: var(--bg-surface-2) !important; }
+
+  /* Material — icon buttons en páginas (no header) */
+  .mat-mdc-icon-button {
+    color: var(--text-secondary) !important;
+    &:hover { background: rgba(0,0,0,0.05) !important; }
+  }
+  .mat-mdc-button { color: var(--text-secondary) !important; }
+
+  .cdk-overlay-dark-backdrop { background: rgba(0,0,0,0.4); }
+}
+
+/* ─── Reset ──────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+
+body {
+  font-family: 'Inter', 'Helvetica Neue', sans-serif;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ─── Scrollbar ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar            { width: 6px; height: 6px; }
+::-webkit-scrollbar-track      { background: var(--bg-base); }
+::-webkit-scrollbar-thumb      { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover{ background: var(--text-muted); }
+
+/* ─── Margen dinámico del contenido según sidebar (desktop) ──────────────── */
+/* !important sobreescribe el margin inline que Angular Material pone */
+@media (min-width: 768px) {
+  .mat-drawer-content {
+    margin-left: var(--sidebar-w) !important;
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+}
+
+/* ─── Angular Material — overrides globales ──────────────────────────────── */
+
+.mat-mdc-card {
+  --mdc-elevated-card-container-color:  var(--bg-surface);
+  --mdc-outlined-card-container-color:  var(--bg-surface);
+  --mdc-outlined-card-outline-color:    var(--border);
+  --mat-card-subtitle-text-color:       var(--text-secondary);
+  border: 1px solid var(--border) !important;
+  box-shadow: var(--shadow-card) !important;
+  border-radius: var(--radius) !important;
+  color: var(--text-primary) !important;
+  .mat-mdc-card-title    { color: var(--text-primary)   !important; }
+  .mat-mdc-card-subtitle { color: var(--text-secondary) !important; }
+}
+
+.mat-mdc-table {
+  --mat-table-background-color:          var(--bg-surface);
+  --mat-table-header-headline-color:     var(--text-secondary);
+  --mat-table-row-item-label-text-color: var(--text-primary);
+  --mat-table-row-item-outline-color:    var(--border);
+  background: var(--bg-surface) !important;
+}
+.mat-mdc-header-row {
+  background: var(--bg-surface-2) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+.mat-mdc-header-cell {
+  color: var(--text-muted) !important;
+  font-size: 0.7rem !important;
+  font-weight: 600 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  border-bottom: none !important;
+}
+.mat-mdc-row {
+  border-bottom: 1px solid rgba(51,65,85,0.6) !important;
+  transition: background 0.15s;
+  &:last-child { border-bottom: none !important; }
+  &:hover { background: rgba(51,65,85,0.35) !important; }
+}
+.mat-mdc-cell {
+  color: var(--text-primary) !important;
+  border-bottom: none !important;
+  font-size: 0.875rem;
+}
+.mat-sort-header-arrow { color: var(--accent) !important; }
+.mat-mdc-no-data-row td {
+  text-align: center;
+  padding: 40px !important;
+  color: var(--text-muted);
+}
+
+.mat-mdc-paginator {
+  --mat-paginator-container-text-color:       var(--text-secondary);
+  --mat-paginator-container-background-color: var(--bg-surface);
+  --mat-paginator-enabled-icon-color:         var(--text-secondary);
+  --mat-paginator-disabled-icon-color:        var(--border);
+  background: var(--bg-surface) !important;
+  border-top: 1px solid var(--border) !important;
+  color: var(--text-secondary) !important;
+}
+
+.mat-mdc-progress-bar {
+  --mdc-linear-progress-active-indicator-color: var(--accent);
+  --mdc-linear-progress-track-color:            var(--border);
+}
+.mat-mdc-progress-spinner circle { stroke: var(--accent) !important; }
+
+.mat-mdc-dialog-container {
+  --mdc-dialog-container-color:       var(--bg-surface);
+  --mdc-dialog-subhead-color:         var(--text-primary);
+  --mdc-dialog-supporting-text-color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius) !important;
+}
+.cdk-overlay-dark-backdrop { background: rgba(0,0,0,0.65); }
+
+.mat-mdc-unelevated-button.mat-primary {
+  --mdc-filled-button-container-color: transparent;
+  background: var(--gradient-btn) !important;
+  color: #fff !important;
+  border-radius: 8px !important;
+  &:hover    { opacity: 0.9; }
+  &[disabled]{ background: var(--border) !important; color: var(--text-muted) !important; }
+}
+
+.mat-mdc-button      { color: var(--text-secondary) !important; }
+.mat-mdc-icon-button {
+  color: var(--text-secondary) !important;
+  &:hover { background: rgba(255,255,255,0.06) !important; }
+}
+
+.mat-mdc-form-field {
+  --mdc-outlined-text-field-outline-color:          var(--border);
+  --mdc-outlined-text-field-hover-outline-color:    var(--accent);
+  --mdc-outlined-text-field-focus-outline-color:    var(--accent);
+  --mdc-outlined-text-field-label-text-color:       var(--text-muted);
+  --mdc-outlined-text-field-focus-label-text-color: var(--accent);
+  --mdc-outlined-text-field-input-text-color:       var(--text-primary);
+  --mdc-outlined-text-field-caret-color:            var(--accent);
+  --mdc-outlined-text-field-container-shape:        8px;
+  --mat-form-field-container-text-color:            var(--text-primary);
+}
+
+.mat-drawer-container { background: var(--bg-base) !important; }
+.mat-drawer {
+  --mat-sidenav-container-background-color: var(--bg-surface);
+  background: var(--bg-surface) !important;
+  border-right: 1px solid var(--border) !important;
+}
+
+.mat-mdc-snack-bar-container {
+  --mdc-snackbar-container-color:       var(--bg-surface-2);
+  --mdc-snackbar-supporting-text-color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: 8px !important;
+}
+.snack-success .mdc-snackbar__surface { border-left: 3px solid var(--success) !important; }
+
+.mat-divider { --mat-divider-color: var(--border); }
+.mat-mdc-chip {
+  --mdc-chip-elevated-container-color: var(--bg-surface-2);
+  --mdc-chip-label-text-color:         var(--text-secondary);
+}
+
+.mat-mdc-select-value, .mat-mdc-select-arrow { color: var(--text-secondary) !important; }
+.mat-mdc-option       { background: var(--bg-surface) !important;  color: var(--text-primary)  !important; }
+.mat-mdc-option:hover { background: var(--bg-surface-2) !important; }
+
+.mat-mdc-tooltip {
+  font-family: 'Inter', sans-serif !important;
+  --mdc-plain-tooltip-container-color:       var(--bg-surface-2);
+  --mdc-plain-tooltip-supporting-text-color: var(--text-primary);
+}
+
+/* ─── Dropdown del usuario ───────────────────────────────────────────────── */
+/*
+ * El overlay de Angular Material se inserta en .cdk-overlay-container al final
+ * del <body>. El tema prebuilt indigo-pink.css define --mat-menu-container-color
+ * como blanco en :root. Para garantizar el tema oscuro, hardcodeamos los colores
+ * en dark mode (base) y los sobreescribimos en light mode con body.light-theme.
+ */
+
+/* ── Dark mode (default) ── */
+.user-dropdown-panel .mat-mdc-menu-panel {
+  /* Ambos tokens: MDC usa --mdc-*, Material usa --mat-* */
+  --mdc-menu-container-color:              #1e293b;
+  --mat-menu-container-color:              #1e293b;
+  --mat-menu-item-label-text-color:        #f1f5f9;
+  --mat-menu-item-icon-color:              #94a3b8;
+  --mat-menu-item-hover-state-layer-color: #334155;
+  --mat-menu-item-focus-state-layer-color: #334155;
+  background:       #1e293b !important;
+  background-color: #1e293b !important;
+  border: 1px solid #334155 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.45) !important;
+  min-width: 230px !important;
+  overflow: hidden !important;
+  color: #f1f5f9 !important;
+}
+.user-dropdown-panel .mat-mdc-menu-content {
+  padding: 0 !important;
+  background: #1e293b !important;
+}
+.user-dropdown-panel .mat-mdc-menu-item {
+  color: #f1f5f9 !important;
+  height: 44px;
+  mat-icon { color: #94a3b8 !important; }
+  /* Hover: fondo #334155 en dark */
+  &:hover:not([disabled]) { background: #334155 !important; }
+}
+.user-dropdown-panel .mat-divider { border-color: #334155 !important; }
+
+/* Sección info usuario: fondo y texto explícitos */
+.dropdown-user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  cursor: default;
+  user-select: none;
+  background: #1e293b;
+}
+.dropdown-avatar-lg {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #334155;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.dropdown-name  { display: block; font-size: 0.9rem;  font-weight: 600; color: #f1f5f9 !important; }
+.dropdown-email { display: block; font-size: 0.76rem; color: #64748b   !important; margin-top: 2px; }
+
+/* ── Light mode overrides ── */
+body.light-theme .user-dropdown-panel .mat-mdc-menu-panel {
+  --mdc-menu-container-color:              #ffffff;
+  --mat-menu-container-color:              #ffffff;
+  --mat-menu-item-label-text-color:        #1e293b;
+  --mat-menu-item-icon-color:              #64748b;
+  --mat-menu-item-hover-state-layer-color: rgba(0,0,0,0.05);
+  background:       #ffffff !important;
+  background-color: #ffffff !important;
+  border-color:     #e2e8f0 !important;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.1) !important;
+  color: #1e293b !important;
+}
+body.light-theme .user-dropdown-panel .mat-mdc-menu-content { background: #ffffff !important; }
+body.light-theme .user-dropdown-panel .mat-mdc-menu-item {
+  color: #1e293b !important;
+  mat-icon { color: #64748b !important; }
+  &:hover:not([disabled]) { background: #f1f5f9 !important; }
+}
+body.light-theme .user-dropdown-panel .mat-divider { border-color: #e2e8f0 !important; }
+body.light-theme .dropdown-user-info { background: #ffffff; }
+body.light-theme .dropdown-name      { color: #1e293b !important; }
+body.light-theme .dropdown-email     { color: #94a3b8 !important; }
+
+/* ─── Utilidades ─────────────────────────────────────────────────────────── */
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.page-title    { font-size: 1.4rem; font-weight: 700; color: var(--text-primary); letter-spacing: -0.3px; }
+.page-subtitle { font-size: 0.875rem; color: var(--text-muted); margin-top: 2px; }
+
+.dark-card {
+  background: var(--bg-surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: var(--shadow-card) !important;
+}
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  min-width: 40px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  justify-content: center;
+}
+.badge-ok   { background: rgba(141,198,63,0.15);  color: #a3e635; }
+.badge-err  { background: rgba(239,68,68,0.15);   color: #f87171; }
+.badge-zero { background: rgba(100,116,139,0.15); color: var(--text-muted); }
+
+.page-error {
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.3);
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: #f87171;
+  font-size: 0.875rem;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.spinner-center { display: flex; justify-content: center; align-items: center; padding: 60px 0; }
+
+.zero-padding-dialog .mat-mdc-dialog-container {
+  --mdc-dialog-container-color: transparent;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  overflow: visible;
+}
+.zero-padding-dialog .mdc-dialog__surface {
+  background: transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  overflow: visible;
+}
