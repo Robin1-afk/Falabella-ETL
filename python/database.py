@@ -37,8 +37,4 @@ _BQ_DATASET = os.getenv("BQ_DATASET", "dataflow_platform")
 
 
 def get_bigquery_client() -> bigquery.Client:
-    """Cliente BigQuery usando Application Default Credentials (ADC).
-    Configurar con: gcloud auth application-default login
-    O setear: GOOGLE_APPLICATION_CREDENTIALS=ruta/al/key.json
-    """
     return bigquery.Client(project=_BQ_PROJECT)

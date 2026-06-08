@@ -75,11 +75,11 @@ services:
       # Credenciales de BigQuery
       BIGQUERY_PROJECT_ID: ${BIGQUERY_PROJECT_ID}
       BIGQUERY_DATASET_ID: ${BIGQUERY_DATASET_ID}
-      GOOGLE_APPLICATION_CREDENTIALS: /app/credentials/bigquery-key.json
+      GOOGLE_APPLICATION_CREDENTIALS: /root/.config/gcloud/application_default_credentials.json
       # Origen CORS permitido (el frontend en el navegador)
       CORS_ORIGIN: "http://localhost"
     volumes:
-      - ./credentials:/app/credentials:ro
+      - /root/.config/gcloud:/root/.config/gcloud:ro
     depends_on:
       sqlserver:
         condition: service_healthy
