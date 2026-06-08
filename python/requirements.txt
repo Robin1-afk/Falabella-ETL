@@ -4,3 +4,5 @@ pandas
 pyodbc
 sqlalchemy
 python-dotenv
+google-cloud-bigquery
+db-dtypes
