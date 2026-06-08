@@ -64,7 +64,7 @@ services:
       context: ./python
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "8001:8000"
     environment:
       # Conexión a SQL Server (driver ODBC 18 incluido en la imagen)
       DB_DRIVER: "ODBC Driver 18 for SQL Server"
