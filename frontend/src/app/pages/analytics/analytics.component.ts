@@ -9,8 +9,7 @@ import { Chart, ChartData, ChartOptions, registerables } from 'chart.js';
 
 Chart.register(...registerables);
 
-// URL base del microservicio Python — independiente del proxy Angular
-const PYTHON_API = 'http://localhost:8000';
+const PYTHON_API = '';
 
 interface Summary  { totalMonto: number; totalTransacciones: number; promedio: number; tasaExito: number }
 interface SedeRow  { sede: string;  monto: number; transacciones: number }
@@ -27,7 +26,6 @@ const COLORS = ['#00A651','#60a5fa','#f59e0b','#f87171','#a78bfa','#34d399','#fb
   styleUrl:    './analytics.component.scss'
 })
 export class AnalyticsComponent implements OnInit {
-  // HttpClient directo — las peticiones van a localhost:8000, no al proxy /api
   constructor(private http: HttpClient) {}
 
   // ── Filtros ──────────────────────────────────────────────────────────────────
@@ -172,7 +170,6 @@ export class AnalyticsComponent implements OnInit {
     if (this._doneCount >= 4) { this.loading.set(false); this._doneCount = 0; }
   }
 
-  // GET directo al microservicio Python (bypass del proxy /api)
   private get<T>(path: string, params: Record<string, string> = {}) {
     let p = new HttpParams();
     Object.entries(params).forEach(([k, v]) => (p = p.set(k, v)));
